@@ -16,19 +16,28 @@ type Config struct {
 
 const confPath = "./migrations/db.yaml"
 
-var conf *Config
-
-func initConfig() {
+func initConfig() *Config {
 
         buf, err := ioutil.ReadFile(confPath)
         if err != nil {
                 panic(err.Error())
         }
 
+        var conf *Config
         conf = new(Config)
         err = yaml.Unmarshal(buf, conf)
         if err != nil {
                 panic(err.Error())
         }
-        fmt.Println(conf)
+        return conf
+}
+
+func (conf *Config) getDSN() string {
+        return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
+                conf.User,
+                conf.Pass,
+                conf.Host,
+                conf.Port,
+                conf.Db,
+                )
 }
