@@ -1,6 +1,7 @@
 package main
 
 import (
+        "fmt"
         "gopkg.in/yaml.v3"
         "io/ioutil"
 )
@@ -15,7 +16,7 @@ type Config struct {
 
 const confPath = "./migrations/db.yaml"
 
-var conf Config
+var conf *Config
 
 func initConfig() {
 
@@ -24,8 +25,10 @@ func initConfig() {
                 panic(err.Error())
         }
 
-        err = yaml.Unmarshal(buf, &conf)
+        conf = new(Config)
+        err = yaml.Unmarshal(buf, conf)
         if err != nil {
                 panic(err.Error())
         }
+        fmt.Println(conf)
 }
