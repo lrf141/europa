@@ -7,6 +7,8 @@ import (
 
 func main() {
 
+        initConfig()
+
         app := cli.NewApp()
         registerCmdInfo(app)
         registerCommands(app)

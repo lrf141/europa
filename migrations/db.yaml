@@ -1,0 +1,5 @@
+database: sample
+host: localhost
+port: 33068
+user: sample
+pass: sample
