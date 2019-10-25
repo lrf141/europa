@@ -18,6 +18,11 @@ func registerCommands(app *cli.App) {
 			Action: func(c *cli.Context) {},
 		},
 		{
+			Name: "create:migrate",
+			Usage: "Create Migrate SQL File into migrations/migrate",
+			Action: func(c *cli.Context) {},
+		},
+		{
 			Name: "run:seeds",
 			Usage: "Run Database Seeds",
 			Action: func(c *cli.Context) {},
@@ -25,6 +30,11 @@ func registerCommands(app *cli.App) {
 		{
 			Name: "rollback:seeds",
 			Usage: "Rollback Seeds",
+			Action: func(c *cli.Context) {},
+		},
+		{
+			Name: "create:seeds",
+			Usage: "Create Seeds SQL File into migrations/seed",
 			Action: func(c *cli.Context) {},
 		},
 		{
