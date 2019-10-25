@@ -45,7 +45,7 @@ func registerCommands(app *cli.App) {
 	}
 }
 
-func rootActionHandler() *DB {
+func prepareDbDriver() *DB {
 
 	db, err := initDb()
 
@@ -67,7 +67,7 @@ func rootActionHandler() *DB {
 
 func runActionHandler(c *cli.Context) {
 
-	db := rootActionHandler()
+	db := prepareDbDriver()
 	fmt.Println(db.Driver)
 
 	defer func() {
