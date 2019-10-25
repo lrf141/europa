@@ -5,6 +5,11 @@ import (
         "os"
 )
 
+const (
+        upSql = ".up.sql"
+        downSql = ".down.sql"
+)
+
 func isDirExist(dirName string) bool {
         _, err := os.Stat(dirName)
         if err != nil {
@@ -41,4 +46,8 @@ func touchFile(name string) error {
 
         _, err = fmt.Fprintln(file, "")
         return err
+}
+
+func deleteFile(name string) error {
+        return os.Remove(name)
 }

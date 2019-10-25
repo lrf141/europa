@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/urfave/cli"
+	"log"
 	"os"
 )
 
@@ -13,6 +14,6 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 }

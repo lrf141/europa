@@ -19,3 +19,8 @@ vendor/
 
 # Binary
 Europa
+
+# Migrations Dir
+migrations/migrate/
+migrations/seed/
+!.gitkeep

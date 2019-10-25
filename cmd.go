@@ -1,8 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/urfave/cli"
+)
+
+var (
+	fileName string
 )
 
 func registerCommands(app *cli.App) {
@@ -10,7 +13,7 @@ func registerCommands(app *cli.App) {
 		{
 			Name:   "run:migrate",
 			Usage:  "Run Database Migrations",
-			Action: runActionHandler,
+			Action: migrateRunAction,
 		},
 		{
 			Name:   "rollback:migrate",
@@ -20,22 +23,38 @@ func registerCommands(app *cli.App) {
 		{
 			Name: "create:migrate",
 			Usage: "Create Migrate SQL File into migrations/migrate",
-			Action: func(c *cli.Context) {},
+			Action: migrateCreateAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Migration Name",
+					Destination: &fileName,
+				},
+			},
 		},
 		{
-			Name: "run:seeds",
+			Name: "run:seed",
 			Usage: "Run Database Seeds",
-			Action: func(c *cli.Context) {},
+			Action: seedRunAction,
 		},
 		{
-			Name: "rollback:seeds",
+			Name: "rollback:seed",
 			Usage: "Rollback Seeds",
 			Action: func(c *cli.Context) {},
 		},
 		{
-			Name: "create:seeds",
+			Name: "create:seed",
 			Usage: "Create Seeds SQL File into migrations/seed",
-			Action: func(c *cli.Context) {},
+			Action: seedCreateAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Seeds Name",
+					Destination: &fileName,
+				},
+			},
 		},
 		{
 			Name:   "status",
@@ -63,17 +82,4 @@ func prepareDbDriver() *DB {
 	}
 
 	return db
-}
-
-func runActionHandler(c *cli.Context) {
-
-	db := prepareDbDriver()
-	fmt.Println(db.Driver)
-
-	defer func() {
-		err := db.Driver.Close()
-		if err != nil {
-			panic(err.Error())
-		}
-	}()
 }
