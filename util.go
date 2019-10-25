@@ -25,7 +25,7 @@ func isFileExist(fileName string) bool {
         return true
 }
 
-func touchFile(name string) {
+func touchFile(name string) error {
 
         file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0777)
         if err != nil {
@@ -40,7 +40,5 @@ func touchFile(name string) {
         }()
 
         _, err = fmt.Fprintln(file, "")
-        if err != nil {
-                panic(err.Error())
-        }
+        return err
 }
