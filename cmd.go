@@ -8,13 +8,23 @@ import (
 func registerCommands(app *cli.App) {
 	app.Commands = []cli.Command{
 		{
-			Name:   "run",
+			Name:   "run:migrate",
 			Usage:  "Run Database Migrations",
 			Action: runActionHandler,
 		},
 		{
-			Name:   "rollback",
+			Name:   "rollback:migrate",
 			Usage:  "Rollback Migrations",
+			Action: func(c *cli.Context) {},
+		},
+		{
+			Name: "run:seeds",
+			Usage: "Run Database Seeds",
+			Action: func(c *cli.Context) {},
+		},
+		{
+			Name: "rollback:seeds",
+			Usage: "Rollback Seeds",
 			Action: func(c *cli.Context) {},
 		},
 		{
