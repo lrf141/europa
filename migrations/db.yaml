@@ -1,5 +1,5 @@
 database: sample
-host: localhost
+host: 127.0.0.1
 port: 33068
 user: sample
 pass: sample

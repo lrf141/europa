@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
+	"io/ioutil"
+	"strings"
 	"time"
 )
 
 const migrateDir = "./migrations/migrate"
 
-func migrateRunAction(c *cli.Context) {
+func migrateRunAction(c *cli.Context) error {
 
 	db := prepareDbDriver()
-	fmt.Println(db.Driver)
 
 	defer func() {
 		err := db.Driver.Close()
@@ -21,6 +22,53 @@ func migrateRunAction(c *cli.Context) {
 		}
 	}()
 
+	// if not exist table
+	err := db.CreateMigrateSchema()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if !isDirExist(migrateDir) {
+		return cli.NewExitError("Does not exist " + migrateDir, 1)
+	}
+
+	files, err := ioutil.ReadDir(migrateDir)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	migrates, err := db.GetRegisterMigrates()
+
+	for _, file := range files {
+
+		if strings.HasSuffix(file.Name(), downSql) {
+			continue
+		}
+
+		flag, ok := migrates[file.Name()]
+		if flag == 1 {
+			continue
+		}
+
+		query, err := ioutil.ReadFile(migrateDir+"/"+file.Name())
+		if err != nil {
+			panic(err.Error())
+		}
+
+		err = db.ExecMigrate(string(query))
+		if err != nil {
+			fmt.Println("Migrate " + file.Name() + aurora.Red("[Failed]").String())
+		}
+		fmt.Println("Migrate " + file.Name() + aurora.Green("[Success]").String())
+
+		if ok {
+			db.UpdateMigrateInfo(file.Name())
+		} else {
+			db.RegisterMigrate(file.Name())
+		}
+	}
+
+	return nil
 }
 
 func migrateCreateAction(c *cli.Context) error {
