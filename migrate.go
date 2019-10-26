@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
 	"time"
 )
@@ -44,17 +45,23 @@ func migrateCreateAction(c *cli.Context) error {
 
 	err := touchFile(migrateFile + upSql)
 	if err != nil {
+		fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Red("[Failed]").String())
 		panic(err.Error())
 	}
+	fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Green("[Success]").String())
 
 	err = touchFile(migrateFile + downSql)
 	if err != nil {
+		fmt.Println("Create Migrate: "+ migrateFile + downSql + " " + aurora.Red("[Failed]").String())
+		fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Yellow("[Rollback]").String())
 		err2 := deleteFile(migrateFile + upSql)
 		if err2 != nil {
+			fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Red("[Rollback Failed]").String())
 			panic(err2.Error())
 		}
 		panic(err.Error())
 	}
+	fmt.Println("Create Migrate: "+ migrateFile + downSql + " " + aurora.Green("[Success]").String())
 
 	return nil
 }
