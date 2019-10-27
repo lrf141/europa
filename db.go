@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
@@ -43,11 +42,10 @@ func (db *DB) CreateMigrateSchema() error {
 }
 
 func (db *DB) ExecMigrate(query string) error {
-	result, err := db.Driver.Query(query)
+	_, err := db.Driver.Query(query)
 	if err != nil {
 		return err
 	}
-	fmt.Println(result)
 	return nil
 }
 
