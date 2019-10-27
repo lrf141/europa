@@ -58,13 +58,14 @@ func migrateRunAction(c *cli.Context) error {
 		err = db.ExecMigrate(string(query))
 		if err != nil {
 			fmt.Println("Migrate " + file.Name() + aurora.Red("[Failed]").String())
+			continue
 		}
 		fmt.Println("Migrate " + file.Name() + aurora.Green("[Success]").String())
 
 		if ok {
 			db.UpdateMigrateInfo(file.Name())
 		} else {
-			db.RegisterMigrate(file.Name())
+			db.RegisterMigrate(file.Name(), 1)
 		}
 	}
 

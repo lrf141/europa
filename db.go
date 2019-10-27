@@ -73,8 +73,8 @@ func (db *DB) GetRegisterMigrates() (map[string]int, error) {
 	return migrates, nil
 }
 
-func (db *DB) RegisterMigrate(migrate string) {
-	_, err := db.Driver.Query("insert into " + migrateSchema + "(migrate, flag) values (?, 1)", migrate)
+func (db *DB) RegisterMigrate(migrate string, flag int) {
+	_, err := db.Driver.Query("insert into " + migrateSchema + "(migrate, flag) values (?, ?)", migrate, flag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
