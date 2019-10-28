@@ -1,3 +1,7 @@
+[![Golang-Version](https://img.shields.io/badge/Golang-1.12-brightgreen)](Golang-V)
+[![GoModules](https://img.shields.io/badge/GoModules-enable-brightgreen)](GoModules)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+# Gambit
 # Europa
 Simple Database CLI Migration Tools.
 
