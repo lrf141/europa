@@ -20,14 +20,14 @@ func initConfig() *Config {
 
 	buf, err := ioutil.ReadFile(confPath)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	var conf *Config
 	conf = new(Config)
 	err = yaml.Unmarshal(buf, conf)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	return conf
 }

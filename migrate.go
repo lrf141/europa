@@ -18,14 +18,14 @@ func migrateRunAction(c *cli.Context) error {
 	defer func() {
 		err := db.Driver.Close()
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 	}()
 
 	// if not exist table
 	err := db.CreateMigrateSchema()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	if !isDirExist(migrateDir) {
@@ -34,7 +34,7 @@ func migrateRunAction(c *cli.Context) error {
 
 	files, err := ioutil.ReadDir(migrateDir)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	migrates, err := db.GetRegisterMigrates()
@@ -52,7 +52,7 @@ func migrateRunAction(c *cli.Context) error {
 
 		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 
 		err = db.ExecMigrate(string(query))
@@ -80,7 +80,7 @@ func migrateRollbackAction(c *cli.Context) error {
 	defer func() {
 		err := db.Driver.Close()
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 	}()
 
@@ -90,12 +90,12 @@ func migrateRollbackAction(c *cli.Context) error {
 
 	files, err := ioutil.ReadDir(migrateDir)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	migrates, err := db.GetRegisterMigrates()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	for _, file := range files {
@@ -111,7 +111,7 @@ func migrateRollbackAction(c *cli.Context) error {
 
 		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 
 		err = db.ExecMigrate(string(query))
