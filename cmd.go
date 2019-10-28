@@ -34,29 +34,6 @@ func registerCommands(app *cli.App) {
 			},
 		},
 		{
-			Name:   "run:seed",
-			Usage:  "Run Database Seeds",
-			Action: seedRunAction,
-		},
-		{
-			Name:   "rollback:seed",
-			Usage:  "Rollback Seeds",
-			Action: func(c *cli.Context) {},
-		},
-		{
-			Name:   "create:seed",
-			Usage:  "Create Seeds SQL File into migrations/seed",
-			Action: seedCreateAction,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:        "name, n",
-					Value:       "",
-					Usage:       "Seeds Name",
-					Destination: &fileName,
-				},
-			},
-		},
-		{
 			Name:   "status",
 			Usage:  "Show Migrations Status",
 			Action: func(c *cli.Context) {},
