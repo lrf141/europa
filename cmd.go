@@ -46,16 +46,16 @@ func prepareDbDriver() *DB {
 	db, err := initDb()
 
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	err = db.HealthCheck()
 	if err != nil {
 		driverErr := db.Driver.Close()
 		if driverErr != nil {
-			panic(driverErr.Error())
+			panic(driverErr)
 		}
-		panic(err.Error())
+		panic(err)
 	}
 
 	return db

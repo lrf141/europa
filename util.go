@@ -34,13 +34,13 @@ func touchFile(name string) error {
 
 	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0777)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 	}()
 
