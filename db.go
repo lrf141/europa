@@ -34,7 +34,7 @@ func (db *DB) HealthCheck() error {
 }
 
 func (db *DB) CreateMigrateSchema() error {
-	_, err := db.Driver.Query("create table if not exists "+migrateSchema+"(migrate text, flag tinyint(1) default 0)")
+	_, err := db.Driver.Query("create table if not exists " + migrateSchema + "(migrate text, flag tinyint(1) default 0)")
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (db *DB) ExecMigrate(query string) error {
 }
 
 func (db *DB) GetRegisterMigrates() (map[string]int, error) {
-	result, err := db.Driver.Query("select migrate,flag from "+migrateSchema)
+	result, err := db.Driver.Query("select migrate,flag from " + migrateSchema)
 	if err != nil {
 		return nil, err
 	}
@@ -74,14 +74,14 @@ func (db *DB) GetRegisterMigrates() (map[string]int, error) {
 }
 
 func (db *DB) RegisterMigrate(migrate string, flag int) {
-	_, err := db.Driver.Query("insert into " + migrateSchema + "(migrate, flag) values (?, ?)", migrate, flag)
+	_, err := db.Driver.Query("insert into "+migrateSchema+"(migrate, flag) values (?, ?)", migrate, flag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
 func (db *DB) UpdateMigrateInfo(migrate string, flag int) {
-	_, err := db.Driver.Query("update "+ migrateSchema +" set flag=? where migrate = ?", flag, migrate)
+	_, err := db.Driver.Query("update "+migrateSchema+" set flag=? where migrate = ?", flag, migrate)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

@@ -29,7 +29,7 @@ func migrateRunAction(c *cli.Context) error {
 	}
 
 	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist " + migrateDir, 1)
+		return cli.NewExitError("Does not exist "+migrateDir, 1)
 	}
 
 	files, err := ioutil.ReadDir(migrateDir)
@@ -50,7 +50,7 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
-		query, err := ioutil.ReadFile(migrateDir+"/"+file.Name())
+		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
 			panic(err.Error())
 		}
@@ -85,7 +85,7 @@ func migrateRollbackAction(c *cli.Context) error {
 	}()
 
 	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist " + migrateDir, 1)
+		return cli.NewExitError("Does not exist "+migrateDir, 1)
 	}
 
 	files, err := ioutil.ReadDir(migrateDir)
@@ -109,7 +109,7 @@ func migrateRollbackAction(c *cli.Context) error {
 			continue
 		}
 
-		query, err := ioutil.ReadFile(migrateDir+"/"+file.Name())
+		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
 			panic(err.Error())
 		}
@@ -151,23 +151,23 @@ func migrateCreateAction(c *cli.Context) error {
 
 	err := touchFile(migrateFile + upSql)
 	if err != nil {
-		fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Red("[Failed]").String())
+		fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Red("[Failed]").String())
 		panic(err.Error())
 	}
-	fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Green("[Success]").String())
+	fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Green("[Success]").String())
 
 	err = touchFile(migrateFile + downSql)
 	if err != nil {
-		fmt.Println("Create Migrate: "+ migrateFile + downSql + " " + aurora.Red("[Failed]").String())
-		fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Yellow("[Rollback]").String())
+		fmt.Println("Create Migrate: " + migrateFile + downSql + " " + aurora.Red("[Failed]").String())
+		fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Yellow("[Rollback]").String())
 		err2 := deleteFile(migrateFile + upSql)
 		if err2 != nil {
-			fmt.Println("Create Migrate: "+ migrateFile + upSql + " " + aurora.Red("[Rollback Failed]").String())
+			fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Red("[Rollback Failed]").String())
 			panic(err2.Error())
 		}
 		panic(err.Error())
 	}
-	fmt.Println("Create Migrate: "+ migrateFile + downSql + " " + aurora.Green("[Success]").String())
+	fmt.Println("Create Migrate: " + migrateFile + downSql + " " + aurora.Green("[Success]").String())
 
 	return nil
 }
@@ -194,7 +194,7 @@ func migrateStatusAction(c *cli.Context) {
 		panic(err.Error())
 	}
 
-	for key,val := range migrates {
+	for key, val := range migrates {
 
 		var status string
 
