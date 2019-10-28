@@ -51,3 +51,7 @@ func touchFile(name string) error {
 func deleteFile(name string) error {
 	return os.Remove(name)
 }
+
+func getFileNameWithoutExtension(target string, ext string) string {
+	return target[:len(target)-len(ext)]
+}

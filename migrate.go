@@ -45,7 +45,7 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
-		flag, ok := migrates[file.Name()]
+		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), upSql)]
 		if flag == 1 {
 			continue
 		}
@@ -57,15 +57,72 @@ func migrateRunAction(c *cli.Context) error {
 
 		err = db.ExecMigrate(string(query))
 		if err != nil {
-			fmt.Println("Migrate " + file.Name() + aurora.Red("[Failed]").String())
+			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			fmt.Println(err)
 			continue
 		}
-		fmt.Println("Migrate " + file.Name() + aurora.Green("[Success]").String())
+		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
 
 		if ok {
-			db.UpdateMigrateInfo(file.Name())
+			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), upSql), 1)
 		} else {
-			db.RegisterMigrate(file.Name(), 1)
+			db.RegisterMigrate(getFileNameWithoutExtension(file.Name(), upSql), 1)
+		}
+	}
+
+	return nil
+}
+
+func migrateRollbackAction(c *cli.Context) error {
+
+	db := prepareDbDriver()
+
+	defer func() {
+		err := db.Driver.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+	}()
+
+	if !isDirExist(migrateDir) {
+		return cli.NewExitError("Does not exist " + migrateDir, 1)
+	}
+
+	files, err := ioutil.ReadDir(migrateDir)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	migrates, err := db.GetRegisterMigrates()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for _, file := range files {
+
+		if strings.HasSuffix(file.Name(), upSql) {
+			continue
+		}
+
+		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), downSql)]
+		if flag == 0 {
+			continue
+		}
+
+		query, err := ioutil.ReadFile(migrateDir+"/"+file.Name())
+		if err != nil {
+			panic(err.Error())
+		}
+
+		err = db.ExecMigrate(string(query))
+		if err != nil {
+			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			continue
+		}
+		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
+
+		if ok {
+			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), downSql), 0)
 		}
 	}
 

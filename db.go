@@ -80,8 +80,8 @@ func (db *DB) RegisterMigrate(migrate string, flag int) {
 	}
 }
 
-func (db *DB) UpdateMigrateInfo(migrate string) {
-	_, err := db.Driver.Query("update "+ migrateSchema +" set flag=1 where migrate = ?", migrate)
+func (db *DB) UpdateMigrateInfo(migrate string, flag int) {
+	_, err := db.Driver.Query("update "+ migrateSchema +" set flag=? where migrate = ?", flag, migrate)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

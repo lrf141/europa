@@ -18,7 +18,7 @@ func registerCommands(app *cli.App) {
 		{
 			Name:   "rollback:migrate",
 			Usage:  "Rollback Migrations",
-			Action: func(c *cli.Context) {},
+			Action: migrateRollbackAction,
 		},
 		{
 			Name:   "create:migrate",
