@@ -1,4 +1,4 @@
-module main
+module github.com/lrf141/europa
 
 go 1.12
 
