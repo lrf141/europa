@@ -14,9 +14,6 @@
 # Goland Setting File
 .idea/
 
-# Go Modules Vendor
-vendor/
-
 # Binary
 Europa
 
