@@ -36,7 +36,7 @@ func registerCommands(app *cli.App) {
 		{
 			Name:   "status",
 			Usage:  "Show Migrations Status",
-			Action: func(c *cli.Context) {},
+			Action: migrateStatusAction,
 		},
 	}
 }

@@ -171,3 +171,40 @@ func migrateCreateAction(c *cli.Context) error {
 
 	return nil
 }
+
+func migrateStatusAction(c *cli.Context) {
+
+	db := prepareDbDriver()
+
+	defer func() {
+		err := db.Driver.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+	}()
+
+	// if not exist table
+	err := db.CreateMigrateSchema()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	migrates, err := db.GetRegisterMigrates()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for key,val := range migrates {
+
+		var status string
+
+		if val == 1 {
+			status = aurora.Green("Active").String()
+		} else {
+			status = aurora.Yellow("Inactive").String()
+		}
+
+		fmt.Println(key + " " + status)
+	}
+
+}
