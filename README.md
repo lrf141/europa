@@ -37,11 +37,15 @@ Create Migrate: ./migrations/migrate/20191028120501_sample_migrate.down.sql [Suc
 
 ```
 $ europa run:migrate
+or 
+$ europa run:migrate --name 20191028120501_sample_migrate
 ```
 
 ## Rollback Migration
 ```
 $ europa rollback:migrate
+or
+$ europa rollback:migrate --name 20191028120501_sample_migrate
 ```
 
 # Migrate Internal
