@@ -55,7 +55,7 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
-		err = db.ExecMigrate(string(query))
+		err = db.Exec(string(query))
 		if err != nil {
 			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
 			fmt.Println(err)
@@ -123,7 +123,7 @@ func migrateRollbackAction(c *cli.Context) error {
 			continue
 		}
 
-		err = db.ExecMigrate(string(query))
+		err = db.Exec(string(query))
 		if err != nil {
 			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
 			continue
