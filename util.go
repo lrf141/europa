@@ -2,12 +2,17 @@ package main
 
 import (
 	"fmt"
+	"github.com/logrusorgru/aurora"
 	"os"
 )
 
 const (
 	upSql   = ".up.sql"
 	downSql = ".down.sql"
+)
+
+const (
+	messageFormat = "%s %s: %s %s"
 )
 
 func isDirExist(dirName string) bool {
@@ -58,4 +63,29 @@ func getFileNameWithoutExtension(target string, ext string) string {
 
 func skipMigrate(migrateName string) bool {
 	return fileName != "" && fileName != migrateName
+}
+
+func printSuccessStatus(file string, types string, action string) {
+	msg := fmt.Sprintf(messageFormat, action, types, file, aurora.Green("[Success]").String())
+	fmt.Println(msg)
+}
+
+func printRollbackStatus(file string, types string, action string) {
+	msg := fmt.Sprintf(messageFormat, action, types, file, aurora.Yellow("[Rollback]").String())
+	fmt.Println(msg)
+}
+
+func printRollbackFailedStatus(file string, types string, action string) {
+	msg := fmt.Sprintf(messageFormat, action, types, file, aurora.Red("[Rollback Failed]").String())
+	fmt.Println(msg)
+}
+
+func printFailedStatus(file string, types string, action string) {
+	msg := fmt.Sprintf(messageFormat, action, types, file, aurora.Red("[Failed]").String())
+	fmt.Println(msg)
+}
+
+func printSkipStatus(file string, types string, action string) {
+	msg := fmt.Sprintf(messageFormat, action, types, file, aurora.Blue("[Skip]").String())
+	fmt.Println(msg)
 }

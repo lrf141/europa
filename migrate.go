@@ -11,7 +11,8 @@ import (
 
 const migrateDir = "./migrations/migrate"
 
-func runAction(c *cli.Context, dir string) error {
+func runAction(c *cli.Context, dir string, types string) error {
+	action := "Run"
 	if !isDirExist(dir) {
 		return cli.NewExitError("Does not exist "+dir, 1)
 	}
@@ -43,24 +44,24 @@ func runAction(c *cli.Context, dir string) error {
 
 		flag, ok := migrates[migrateName]
 		if flag == 1 {
-			fmt.Println("Migrate " + file.Name() + aurora.Blue(" [Skip]").String())
+			printSkipStatus(file.Name(), types, action)
 			continue
 		}
 
 		query, err := ioutil.ReadFile(dir + "/" + file.Name())
 		if err != nil {
-			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			printFailedStatus(file.Name(), types, action)
 			fmt.Println(err)
 			continue
 		}
 
 		err = db.Exec(string(query))
 		if err != nil {
-			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			printFailedStatus(file.Name(), types, action)
 			fmt.Println(err)
 			continue
 		}
-		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
+		printSuccessStatus(file.Name(), types, action)
 
 		if ok {
 			db.UpdateMigrateInfo(migrateName, 1)
@@ -77,10 +78,12 @@ func runAction(c *cli.Context, dir string) error {
 }
 
 func migrateRunAction(c *cli.Context) error {
-	return runAction(c, migrateDir)
+	return runAction(c, migrateDir, "migrate")
 }
 
-func rollbackAction(c *cli.Context, dir string) error {
+func rollbackAction(c *cli.Context, dir string, types string) error {
+	action := "Rollback"
+
 	if !isDirExist(dir) {
 		return cli.NewExitError("Does not exist "+dir, 1)
 	}
@@ -114,23 +117,23 @@ func rollbackAction(c *cli.Context, dir string) error {
 
 		flag, ok := migrates[migrateName]
 		if flag == 0 || !ok {
-			fmt.Println("Migrate " + file.Name() + aurora.Blue(" [Skip]").String())
+			printSkipStatus(file.Name(), types, action)
 			continue
 		}
 
 		query, err := ioutil.ReadFile(dir + "/" + file.Name())
 		if err != nil {
-			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			printFailedStatus(file.Name(), types, action)
 			fmt.Println(err)
 			continue
 		}
 
 		err = db.Exec(string(query))
 		if err != nil {
-			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			printFailedStatus(file.Name(), types, action)
 			continue
 		}
-		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
+		printSuccessStatus(file.Name(), types, action)
 
 		if ok {
 			db.UpdateMigrateInfo(migrateName, 0)
@@ -145,12 +148,14 @@ func rollbackAction(c *cli.Context, dir string) error {
 }
 
 func migrateRollbackAction(c *cli.Context) error {
-	return rollbackAction(c, migrateDir)
+	return rollbackAction(c, migrateDir, "migrate")
 }
 
-func createAction(c *cli.Context, dir string) error {
+func createAction(c *cli.Context, dir string, types string) error {
+	action := "Create"
+
 	if c.NumFlags() < 1 || fileName == "" {
-		err := cli.ShowCommandHelp(c, "create:migrate")
+		err := cli.ShowCommandHelp(c, "create:"+types)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -169,29 +174,29 @@ func createAction(c *cli.Context, dir string) error {
 
 	err := touchFile(migrateFile + upSql)
 	if err != nil {
-		fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Red("[Failed]").String())
+		printFailedStatus(migrateFile+upSql, types, action)
 		panic(err.Error())
 	}
-	fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Green("[Success]").String())
+	printSuccessStatus(migrateFile+upSql, types, action)
 
 	err = touchFile(migrateFile + downSql)
 	if err != nil {
-		fmt.Println("Create Migrate: " + migrateFile + downSql + " " + aurora.Red("[Failed]").String())
-		fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Yellow("[Rollback]").String())
+		printFailedStatus(migrateFile+downSql, types, action)
+		printRollbackStatus(migrateFile+upSql, types, action)
 		err2 := deleteFile(migrateFile + upSql)
 		if err2 != nil {
-			fmt.Println("Create Migrate: " + migrateFile + upSql + " " + aurora.Red("[Rollback Failed]").String())
+			printRollbackFailedStatus(migrateFile+upSql, types, action)
 			panic(err2.Error())
 		}
 		panic(err.Error())
 	}
-	fmt.Println("Create Migrate: " + migrateFile + downSql + " " + aurora.Green("[Success]").String())
+	printSuccessStatus(migrateFile+downSql, types, action)
 
 	return nil
 }
 
 func migrateCreateAction(c *cli.Context) error {
-	return createAction(c, migrateDir)
+	return createAction(c, migrateDir, "migrate")
 }
 
 func migrateStatusAction(c *cli.Context) {
