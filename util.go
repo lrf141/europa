@@ -55,3 +55,7 @@ func deleteFile(name string) error {
 func getFileNameWithoutExtension(target string, ext string) string {
 	return target[:len(target)-len(ext)]
 }
+
+func skipMigrate(migrateName string) bool {
+	return fileName != "" && fileName != migrateName
+}
