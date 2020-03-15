@@ -11,10 +11,9 @@ import (
 
 const migrateDir = "./migrations/migrate"
 
-func migrateRunAction(c *cli.Context) error {
-
-	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist "+migrateDir, 1)
+func runAction(c *cli.Context, dir string) error {
+	if !isDirExist(dir) {
+		return cli.NewExitError("Does not exist "+dir, 1)
 	}
 
 	db := prepareDbDriver()
@@ -29,7 +28,7 @@ func migrateRunAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	files, err := ioutil.ReadDir(migrateDir)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +47,7 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
-		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
+		query, err := ioutil.ReadFile(dir + "/" + file.Name())
 		if err != nil {
 			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
 			fmt.Println(err)
@@ -77,10 +76,13 @@ func migrateRunAction(c *cli.Context) error {
 	return nil
 }
 
-func migrateRollbackAction(c *cli.Context) error {
+func migrateRunAction(c *cli.Context) error {
+	return runAction(c, migrateDir)
+}
 
-	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist "+migrateDir, 1)
+func rollbackAction(c *cli.Context, dir string) error {
+	if !isDirExist(dir) {
+		return cli.NewExitError("Does not exist "+dir, 1)
 	}
 
 	db := prepareDbDriver()
@@ -92,7 +94,7 @@ func migrateRollbackAction(c *cli.Context) error {
 		}
 	}()
 
-	files, err := ioutil.ReadDir(migrateDir)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
@@ -116,7 +118,7 @@ func migrateRollbackAction(c *cli.Context) error {
 			continue
 		}
 
-		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
+		query, err := ioutil.ReadFile(dir + "/" + file.Name())
 		if err != nil {
 			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
 			fmt.Println(err)
@@ -142,8 +144,11 @@ func migrateRollbackAction(c *cli.Context) error {
 	return nil
 }
 
-func migrateCreateAction(c *cli.Context) error {
+func migrateRollbackAction(c *cli.Context) error {
+	return rollbackAction(c, migrateDir)
+}
 
+func createAction(c *cli.Context, dir string) error {
 	if c.NumFlags() < 1 || fileName == "" {
 		err := cli.ShowCommandHelp(c, "create:migrate")
 		if err != nil {
@@ -152,15 +157,15 @@ func migrateCreateAction(c *cli.Context) error {
 		return cli.NewExitError("Please set migrations name.", 1)
 	}
 
-	if !isDirExist(migrateDir) {
-		err := mkDir(migrateDir)
+	if !isDirExist(dir) {
+		err := mkDir(dir)
 		if err != nil {
 			panic(err.Error())
 		}
 	}
 
 	t := time.Now().Format("20060102150405")
-	migrateFile := fmt.Sprintf("%s/%s_%s", migrateDir, t, fileName)
+	migrateFile := fmt.Sprintf("%s/%s_%s", dir, t, fileName)
 
 	err := touchFile(migrateFile + upSql)
 	if err != nil {
@@ -183,6 +188,10 @@ func migrateCreateAction(c *cli.Context) error {
 	fmt.Println("Create Migrate: " + migrateFile + downSql + " " + aurora.Green("[Success]").String())
 
 	return nil
+}
+
+func migrateCreateAction(c *cli.Context) error {
+	return createAction(c, migrateDir)
 }
 
 func migrateStatusAction(c *cli.Context) {
