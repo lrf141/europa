@@ -14,11 +14,27 @@ func registerCommands(app *cli.App) {
 			Name:   "run:migrate",
 			Usage:  "Run Database Migrations",
 			Action: migrateRunAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Migration Name. ex) --name 20200101000000_create_user_table",
+					Destination: &fileName,
+				},
+			},
 		},
 		{
 			Name:   "rollback:migrate",
 			Usage:  "Rollback Migrations",
 			Action: migrateRollbackAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Migration Name. ex) --name 20200101000000_create_user_table",
+					Destination: &fileName,
+				},
+			},
 		},
 		{
 			Name:   "create:migrate",
