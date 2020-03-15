@@ -45,8 +45,6 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
-		fmt.Println(fileName)
-
 		if fileName != "" {
 			if fileName != getFileNameWithoutExtension(file.Name(), upSql) {
 				continue
