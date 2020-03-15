@@ -13,23 +13,20 @@ const migrateDir = "./migrations/migrate"
 
 func migrateRunAction(c *cli.Context) error {
 
-	db := prepareDbDriver()
+	if !isDirExist(migrateDir) {
+		return cli.NewExitError("Does not exist "+migrateDir, 1)
+	}
 
+	db := prepareDbDriver()
 	defer func() {
 		err := db.Driver.Close()
 		if err != nil {
 			panic(err)
 		}
 	}()
-
-	// if not exist table
-	err := db.CreateMigrateSchema()
+	migrates, err := db.GetRegisterMigrates()
 	if err != nil {
 		panic(err)
-	}
-
-	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist "+migrateDir, 1)
 	}
 
 	files, err := ioutil.ReadDir(migrateDir)
@@ -37,28 +34,25 @@ func migrateRunAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	migrates, err := db.GetRegisterMigrates()
-
 	for _, file := range files {
 
-		if strings.HasSuffix(file.Name(), downSql) {
+		migrateName := getFileNameWithoutExtension(file.Name(), upSql)
+
+		if strings.HasSuffix(file.Name(), downSql) || skipMigrate(migrateName) {
 			continue
 		}
 
-		if fileName != "" {
-			if fileName != getFileNameWithoutExtension(file.Name(), upSql) {
-				continue
-			}
-		}
-
-		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), upSql)]
+		flag, ok := migrates[migrateName]
 		if flag == 1 {
+			fmt.Println("Migrate " + file.Name() + aurora.Blue(" [Skip]").String())
 			continue
 		}
 
 		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
-			panic(err)
+			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			fmt.Println(err)
+			continue
 		}
 
 		err = db.ExecMigrate(string(query))
@@ -70,9 +64,9 @@ func migrateRunAction(c *cli.Context) error {
 		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
 
 		if ok {
-			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), upSql), 1)
+			db.UpdateMigrateInfo(migrateName, 1)
 		} else {
-			db.RegisterMigrate(getFileNameWithoutExtension(file.Name(), upSql), 1)
+			db.RegisterMigrate(migrateName, 1)
 		}
 
 		if fileName != "" {
@@ -85,6 +79,10 @@ func migrateRunAction(c *cli.Context) error {
 
 func migrateRollbackAction(c *cli.Context) error {
 
+	if !isDirExist(migrateDir) {
+		return cli.NewExitError("Does not exist "+migrateDir, 1)
+	}
+
 	db := prepareDbDriver()
 
 	defer func() {
@@ -93,10 +91,6 @@ func migrateRollbackAction(c *cli.Context) error {
 			panic(err)
 		}
 	}()
-
-	if !isDirExist(migrateDir) {
-		return cli.NewExitError("Does not exist "+migrateDir, 1)
-	}
 
 	files, err := ioutil.ReadDir(migrateDir)
 	if err != nil {
@@ -110,24 +104,23 @@ func migrateRollbackAction(c *cli.Context) error {
 
 	for _, file := range files {
 
-		if strings.HasSuffix(file.Name(), upSql) {
+		migrateName := getFileNameWithoutExtension(file.Name(), downSql)
+
+		if strings.HasSuffix(file.Name(), upSql) || skipMigrate(migrateName) {
 			continue
 		}
 
-		if fileName != "" {
-			if fileName != getFileNameWithoutExtension(file.Name(), downSql) {
-				continue
-			}
-		}
-
-		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), downSql)]
-		if flag == 0 {
+		flag, ok := migrates[migrateName]
+		if flag == 0 || !ok {
+			fmt.Println("Migrate " + file.Name() + aurora.Blue(" [Skip]").String())
 			continue
 		}
 
 		query, err := ioutil.ReadFile(migrateDir + "/" + file.Name())
 		if err != nil {
-			panic(err)
+			fmt.Println("Migrate " + file.Name() + aurora.Red(" [Failed]").String())
+			fmt.Println(err)
+			continue
 		}
 
 		err = db.ExecMigrate(string(query))
@@ -138,7 +131,7 @@ func migrateRollbackAction(c *cli.Context) error {
 		fmt.Println("Migrate " + file.Name() + aurora.Green(" [Success]").String())
 
 		if ok {
-			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), downSql), 0)
+			db.UpdateMigrateInfo(migrateName, 0)
 		}
 
 		if fileName != "" {

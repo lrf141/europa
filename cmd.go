@@ -74,5 +74,10 @@ func prepareDbDriver() *DB {
 		panic(err)
 	}
 
+	err = db.CreateMigrateSchema()
+	if err != nil {
+		panic(err)
+	}
+
 	return db
 }
