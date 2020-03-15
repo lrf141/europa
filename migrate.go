@@ -45,6 +45,14 @@ func migrateRunAction(c *cli.Context) error {
 			continue
 		}
 
+		fmt.Println(fileName)
+
+		if fileName != "" {
+			if fileName != getFileNameWithoutExtension(file.Name(), upSql) {
+				continue
+			}
+		}
+
 		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), upSql)]
 		if flag == 1 {
 			continue
@@ -67,6 +75,10 @@ func migrateRunAction(c *cli.Context) error {
 			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), upSql), 1)
 		} else {
 			db.RegisterMigrate(getFileNameWithoutExtension(file.Name(), upSql), 1)
+		}
+
+		if fileName != "" {
+			break
 		}
 	}
 
@@ -104,6 +116,12 @@ func migrateRollbackAction(c *cli.Context) error {
 			continue
 		}
 
+		if fileName != "" {
+			if fileName != getFileNameWithoutExtension(file.Name(), downSql) {
+				continue
+			}
+		}
+
 		flag, ok := migrates[getFileNameWithoutExtension(file.Name(), downSql)]
 		if flag == 0 {
 			continue
@@ -123,6 +141,10 @@ func migrateRollbackAction(c *cli.Context) error {
 
 		if ok {
 			db.UpdateMigrateInfo(getFileNameWithoutExtension(file.Name(), downSql), 0)
+		}
+
+		if fileName != "" {
+			break
 		}
 	}
 
