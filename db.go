@@ -13,6 +13,7 @@ type DB struct {
 
 const _driver = "mysql"
 const migrateSchema = "migrate_schema"
+const seedSchema = "seed_schema"
 
 func initDb() (*DB, error) {
 
@@ -33,15 +34,23 @@ func (db *DB) HealthCheck() error {
 	return db.Driver.Ping()
 }
 
-func (db *DB) CreateMigrateSchema() error {
-	_, err := db.Driver.Query("create table if not exists " + migrateSchema + "(migrate text, flag tinyint(1) default 0)")
+func (db *DB) CreateSchema(schema string, types string) error {
+	_, err := db.Driver.Query("create table if not exists " + schema + "(" + types + " text, flag tinyint(1) default 0)")
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (db *DB) ExecMigrate(query string) error {
+func (db *DB) CreateMigrateSchema() error {
+	return db.CreateSchema(migrateSchema, "migrate")
+}
+
+func (db *DB) CreateSeedSchema() error {
+	return db.CreateSchema(seedSchema, "seed")
+}
+
+func (db *DB) Exec(query string) error {
 	_, err := db.Driver.Query(query)
 	if err != nil {
 		return err
@@ -49,8 +58,8 @@ func (db *DB) ExecMigrate(query string) error {
 	return nil
 }
 
-func (db *DB) GetRegisterMigrates() (map[string]int, error) {
-	result, err := db.Driver.Query("select migrate,flag from " + migrateSchema)
+func (db *DB) GetRegister(schema string, types string) (map[string]int, error) {
+	result, err := db.Driver.Query("select " + types + ",flag from " + schema)
 	if err != nil {
 		return nil, err
 	}
@@ -73,15 +82,39 @@ func (db *DB) GetRegisterMigrates() (map[string]int, error) {
 	return migrates, nil
 }
 
-func (db *DB) RegisterMigrate(migrate string, flag int) {
-	_, err := db.Driver.Query("insert into "+migrateSchema+"(migrate, flag) values (?, ?)", migrate, flag)
+func (db *DB) GetRegisterMigrates() (map[string]int, error) {
+	return db.GetRegister(migrateSchema, "migrate")
+}
+
+func (db *DB) GetRegisterSeeds() (map[string]int, error) {
+	return db.GetRegister(seedSchema, "seed")
+}
+
+func (db *DB) Register(schema string, name string, flag int, types string) {
+	_, err := db.Driver.Query("insert into "+schema+"(" + types + ", flag) values (?, ?)", name, flag)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
+func (db *DB) RegisterMigrate(migrate string, flag int) {
+	db.Register(migrateSchema, migrate, flag, "migrate")
+}
+
+func (db *DB) RegisterSeed(seed string, flag int) {
+	db.Register(seedSchema, seed, flag, "seed")
+}
+
 func (db *DB) UpdateMigrateInfo(migrate string, flag int) {
-	_, err := db.Driver.Query("update "+migrateSchema+" set flag=? where migrate = ?", flag, migrate)
+	db.UpdateInfo(migrateSchema, migrate, flag)
+}
+
+func (db *DB) UpdateSeedInfo(seed string, flag int) {
+	db.UpdateInfo(seedSchema, seed, flag)
+}
+
+func (db *DB) UpdateInfo(schema string, name string, flag int) {
+	_, err := db.Driver.Query("update "+schema+" set flag=? where migrate = ?", flag, name)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
