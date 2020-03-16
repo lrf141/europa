@@ -50,9 +50,53 @@ func registerCommands(app *cli.App) {
 			},
 		},
 		{
-			Name:   "status",
+			Name:   "run:seed",
+			Usage:  "Run Database Seeds",
+			Action: seedRunAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Seed Name. ex) --name 20200101000000_create_user_table",
+					Destination: &fileName,
+				},
+			},
+		},
+		{
+			Name:   "rollback:seed",
+			Usage:  "Rollback Seeds",
+			Action: seedRollbackAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name: "name, n",
+					Value: "",
+					Usage: "Seed Name. ex) --name 20200101000000_create_user_table",
+					Destination: &fileName,
+				},
+			},
+		},
+		{
+			Name:   "create:seed",
+			Usage:  "Create Seed SQL File into migrations/migrate",
+			Action: seedCreateAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "name, n",
+					Value:       "",
+					Usage:       "Seed Name",
+					Destination: &fileName,
+				},
+			},
+		},
+		{
+			Name:   "status:migrate",
 			Usage:  "Show Migrations Status",
 			Action: migrateStatusAction,
+		},
+		{
+			Name:   "status:seed",
+			Usage:  "Show Seeds Status",
+			Action: seedStatusAction,
 		},
 	}
 }

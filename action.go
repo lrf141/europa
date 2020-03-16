@@ -9,67 +9,70 @@ import (
 	"time"
 )
 
-const (
-	migrateDir = "./migrations/migrate"
-	seedDir = "./migrations/seed"
-)
+type Action interface {
+	Register(name string, flag int)
+	Update(name string, flag int)
+	Create() error
+	GetDb() *DB
+	GetRegister() (map[string]int, error)
+	GetType() string
+	GetAction() string
+	GetDir() string
+	CloseDbDriver() error
+}
 
-func runAction(c *cli.Context, dir string, types string) error {
-	action := "Run"
-	if !isDirExist(dir) {
-		return cli.NewExitError("Does not exist "+dir, 1)
-	}
+func runAction(c *cli.Context, action Action) error {
 
-	db := prepareDbDriver()
 	defer func() {
-		err := db.Driver.Close()
+		err := action.CloseDbDriver()
 		if err != nil {
 			panic(err)
 		}
 	}()
-	migrates, err := db.GetRegisterMigrates()
+
+	register, err := action.GetRegister()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := ioutil.ReadDir(action.GetDir())
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for _, file := range files {
 
-		migrateName := getFileNameWithoutExtension(file.Name(), upSql)
+		name := getFileNameWithoutExtension(file.Name(), upSql)
 
-		if strings.HasSuffix(file.Name(), downSql) || skipMigrate(migrateName) {
+		if strings.HasSuffix(file.Name(), downSql) || skipMigrate(name) {
 			continue
 		}
 
-		flag, ok := migrates[migrateName]
+		flag, ok := register[name]
 		if flag == 1 {
-			printSkipStatus(file.Name(), types, action)
+			printSkipStatus(file.Name(), action.GetType(), action.GetAction())
 			continue
 		}
 
-		query, err := ioutil.ReadFile(dir + "/" + file.Name())
+		query, err := ioutil.ReadFile(action.GetDir() + "/" + file.Name())
 		if err != nil {
-			printFailedStatus(file.Name(), types, action)
+			printFailedStatus(file.Name(), action.GetType(), action.GetAction())
 			fmt.Println(err)
 			continue
 		}
 
-		err = db.Exec(string(query))
+		err = action.GetDb().Exec(string(query))
 		if err != nil {
-			printFailedStatus(file.Name(), types, action)
+			printFailedStatus(file.Name(), action.GetType(), action.GetAction())
 			fmt.Println(err)
 			continue
 		}
-		printSuccessStatus(file.Name(), types, action)
+		printSuccessStatus(file.Name(), action.GetType(), action.GetAction())
 
 		if ok {
-			db.UpdateMigrateInfo(migrateName, 1)
+			action.Update(name, 1)
 		} else {
-			db.RegisterMigrate(migrateName, 1)
+			action.Register(name, 1)
 		}
 
 		if fileName != "" {
@@ -81,35 +84,37 @@ func runAction(c *cli.Context, dir string, types string) error {
 }
 
 func migrateRunAction(c *cli.Context) error {
-	return runAction(c, migrateDir, "migrate")
+	migrateAction, err := initMigrate("Run")
+	if err != nil {
+		panic(err)
+	}
+	return runAction(c, migrateAction)
 }
+
 
 func seedRunAction(c *cli.Context) error {
-	return runAction(c, seedDir, "seed")
+	seedAction, err := initSeed("Run")
+	if err != nil {
+		return err
+	}
+	return runAction(c, seedAction)
 }
 
-func rollbackAction(c *cli.Context, dir string, types string) error {
-	action := "Rollback"
-
-	if !isDirExist(dir) {
-		return cli.NewExitError("Does not exist "+dir, 1)
-	}
-
-	db := prepareDbDriver()
+func rollbackAction(c *cli.Context, action Action) error {
 
 	defer func() {
-		err := db.Driver.Close()
+		err := action.CloseDbDriver()
 		if err != nil {
 			panic(err)
 		}
 	}()
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := ioutil.ReadDir(action.GetDir())
 	if err != nil {
 		panic(err)
 	}
 
-	migrates, err := db.GetRegisterMigrates()
+	migrates, err := action.GetRegister()
 	if err != nil {
 		panic(err)
 	}
@@ -124,26 +129,26 @@ func rollbackAction(c *cli.Context, dir string, types string) error {
 
 		flag, ok := migrates[migrateName]
 		if flag == 0 || !ok {
-			printSkipStatus(file.Name(), types, action)
+			printSkipStatus(file.Name(), action.GetType(), action.GetAction())
 			continue
 		}
 
-		query, err := ioutil.ReadFile(dir + "/" + file.Name())
+		query, err := ioutil.ReadFile(action.GetDir() + "/" + file.Name())
 		if err != nil {
-			printFailedStatus(file.Name(), types, action)
+			printFailedStatus(file.Name(), action.GetType(), action.GetAction())
 			fmt.Println(err)
 			continue
 		}
 
-		err = db.Exec(string(query))
+		err = action.GetDb().Exec(string(query))
 		if err != nil {
-			printFailedStatus(file.Name(), types, action)
+			printFailedStatus(file.Name(), action.GetType(), action.GetAction())
 			continue
 		}
-		printSuccessStatus(file.Name(), types, action)
+		printSuccessStatus(file.Name(), action.GetType(), action.GetAction())
 
 		if ok {
-			db.UpdateMigrateInfo(migrateName, 0)
+			action.Update(migrateName, 0)
 		}
 
 		if fileName != "" {
@@ -155,91 +160,106 @@ func rollbackAction(c *cli.Context, dir string, types string) error {
 }
 
 func migrateRollbackAction(c *cli.Context) error {
-	return rollbackAction(c, migrateDir, "migrate")
+	migrateAction, err := initMigrate("Rollback")
+	if err != nil {
+		panic(err)
+	}
+	return rollbackAction(c, migrateAction)
 }
 
 func seedRollbackAction(c *cli.Context) error {
-	return rollbackAction(c, seedDir, "seed")
+	seedAction, err := initSeed("Rollback")
+	if err != nil {
+		return err
+	}
+	return rollbackAction(c, seedAction)
 }
 
-func createAction(c *cli.Context, dir string, types string) error {
-	action := "Create"
+func createAction(c *cli.Context, action Action) error {
+
+	err := action.Create()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err := action.CloseDbDriver()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	if c.NumFlags() < 1 || fileName == "" {
-		err := cli.ShowCommandHelp(c, "create:"+types)
+		err := cli.ShowCommandHelp(c, "create:" + action.GetType())
 		if err != nil {
 			panic(err.Error())
 		}
-		return cli.NewExitError("Please set migrations name.", 1)
+		return cli.NewExitError("Please set migrations or seed name.", 1)
 	}
 
-	if !isDirExist(dir) {
-		err := mkDir(dir)
+	if !isDirExist(action.GetDir()) {
+		err := mkDir(action.GetDir())
 		if err != nil {
-			panic(err.Error())
+			return err
 		}
 	}
 
 	t := time.Now().Format("20060102150405")
-	migrateFile := fmt.Sprintf("%s/%s_%s", dir, t, fileName)
+	migrateFile := fmt.Sprintf("%s/%s_%s", action.GetDir(), t, fileName)
 
-	err := touchFile(migrateFile + upSql)
+	err = touchFile(migrateFile + upSql)
 	if err != nil {
-		printFailedStatus(migrateFile+upSql, types, action)
+		printFailedStatus(migrateFile+upSql, action.GetType(), action.GetAction())
 		panic(err.Error())
 	}
-	printSuccessStatus(migrateFile+upSql, types, action)
+	printSuccessStatus(migrateFile+upSql, action.GetType(), action.GetAction())
 
 	err = touchFile(migrateFile + downSql)
 	if err != nil {
-		printFailedStatus(migrateFile+downSql, types, action)
-		printRollbackStatus(migrateFile+upSql, types, action)
+		printFailedStatus(migrateFile+downSql, action.GetType(), action.GetAction())
+		printRollbackStatus(migrateFile+upSql, action.GetType(), action.GetAction())
 		err2 := deleteFile(migrateFile + upSql)
 		if err2 != nil {
-			printRollbackFailedStatus(migrateFile+upSql, types, action)
-			panic(err2.Error())
+			printRollbackFailedStatus(migrateFile+upSql, action.GetType(), action.GetAction())
+			return err2
 		}
-		panic(err.Error())
+		return err
 	}
-	printSuccessStatus(migrateFile+downSql, types, action)
+	printSuccessStatus(migrateFile+downSql, action.GetType(), action.GetAction())
 
 	return nil
 }
 
 func migrateCreateAction(c *cli.Context) error {
-	return createAction(c, migrateDir, "migrate")
+	migrateAction, err := initMigrate("Create")
+	if err != nil {
+		panic(err)
+	}
+	return createAction(c, migrateAction)
 }
+
 
 func seedCreateAction(c *cli.Context) error {
-	return createAction(c, seedDir, "seed")
+	seedAction, err := initSeed("Create")
+	if err != nil {
+		return err
+	}
+	return createAction(c, seedAction)
 }
 
-func migrateStatusAction(c *cli.Context) {
-
-	db := prepareDbDriver()
-
-	defer func() {
-		err := db.Driver.Close()
-		if err != nil {
-			panic(err.Error())
-		}
-	}()
-
-	// if not exist table
-	err := db.CreateMigrateSchema()
+func statusAction(c *cli.Context, action Action) error {
+	err := action.Create()
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
-	migrates, err := db.GetRegisterMigrates()
+	register, err := action.GetRegister()
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
-	for key, val := range migrates {
-
+	for key, val := range register {
 		var status string
-
 		if val == 1 {
 			status = aurora.Green("Active").String()
 		} else {
@@ -248,5 +268,21 @@ func migrateStatusAction(c *cli.Context) {
 
 		fmt.Println(key + " " + status)
 	}
+	return nil
+}
 
+func migrateStatusAction(c *cli.Context) error {
+	migrateAction, err := initMigrate("Status")
+	if err != nil {
+		return err
+	}
+	return statusAction(c, migrateAction)
+}
+
+func seedStatusAction(c *cli.Context) error {
+	seedAction, err := initSeed("Status")
+	if err != nil {
+		return err
+	}
+	return statusAction(c, seedAction)
 }
