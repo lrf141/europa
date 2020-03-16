@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-const migrateDir = "./migrations/migrate"
+const (
+	migrateDir = "./migrations/migrate"
+	seedDir = "./migrations/seed"
+)
 
 func runAction(c *cli.Context, dir string, types string) error {
 	action := "Run"
@@ -79,6 +82,10 @@ func runAction(c *cli.Context, dir string, types string) error {
 
 func migrateRunAction(c *cli.Context) error {
 	return runAction(c, migrateDir, "migrate")
+}
+
+func seedRunAction(c *cli.Context) error {
+	return runAction(c, seedDir, "seed")
 }
 
 func rollbackAction(c *cli.Context, dir string, types string) error {
@@ -151,6 +158,10 @@ func migrateRollbackAction(c *cli.Context) error {
 	return rollbackAction(c, migrateDir, "migrate")
 }
 
+func seedRollbackAction(c *cli.Context) error {
+	return rollbackAction(c, seedDir, "seed")
+}
+
 func createAction(c *cli.Context, dir string, types string) error {
 	action := "Create"
 
@@ -197,6 +208,10 @@ func createAction(c *cli.Context, dir string, types string) error {
 
 func migrateCreateAction(c *cli.Context) error {
 	return createAction(c, migrateDir, "migrate")
+}
+
+func seedCreateAction(c *cli.Context) error {
+	return createAction(c, seedDir, "seed")
 }
 
 func migrateStatusAction(c *cli.Context) {
