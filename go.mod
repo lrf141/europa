@@ -7,5 +7,5 @@ require (
 	github.com/logrusorgru/aurora v0.0.0-20191017060258-dc85c304c434
 	github.com/urfave/cli v1.22.1
 	google.golang.org/appengine v1.6.7 // indirect
-	gopkg.in/yaml.v3 v3.0.0
+	gopkg.in/yaml.v3 v3.0.1
 )

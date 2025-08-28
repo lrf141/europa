@@ -12,5 +12,5 @@ github.com/shurcooL/sanitized_anchor_name
 github.com/urfave/cli
 # google.golang.org/appengine v1.6.7
 google.golang.org/appengine/cloudsql
-# gopkg.in/yaml.v3 v3.0.0
+# gopkg.in/yaml.v3 v3.0.1
 gopkg.in/yaml.v3
